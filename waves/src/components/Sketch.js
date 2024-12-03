@@ -79,7 +79,7 @@ class Sketch {
         var frustumSize = 4;
         var aspect = window.innerWidth / window.innerHeight;
         this.camera = new THREE.OrthographicCamera(frustumSize * aspect / -2,
-        frustumSize * aspect / 2, frustumSize/ 2, frustumSize / -2, -1000, 1000);
+            frustumSize * aspect / 2, frustumSize / 2, frustumSize / -2, -1000, 1000);
 
         this.camera.position.set(8, 12, 16);
 
@@ -103,7 +103,7 @@ class Sketch {
 
     start = () => {
         // if already initalized then leave it be
-        if(!this.frameId) {
+        if (!this.frameId) {
             this.frameId = requestAnimationFrame(this.update);
         }
     }
@@ -130,11 +130,11 @@ class Sketch {
             fragmentShader: fragmentShader
         });
         this.geometry = new THREE.PlaneGeometry(1, 1, 1, 1);
-    
+
         /* this.plane = new THREE.Mesh(this.geometry, this.material);
         this.scene.add(this.plane); */
 
-        let {scene: children} = await this.gltfLoader.loadAsync(Obj1);
+        let { scene: children } = await this.gltfLoader.loadAsync(Obj1);
         let geoOne = children.children[0].geometry;
 
         /* let mat = new THREE.MeshMatcapMaterial({
@@ -142,7 +142,7 @@ class Sketch {
         }); */
 
         let rows = 100;
-        this.count =  rows * rows;
+        this.count = rows * rows;
         let index = 0;
         let random = new Float32Array(this.count);
 
@@ -153,14 +153,14 @@ class Sketch {
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < rows; j++) {
                 random[index] = Math.random();
-                this.dummy.position.set( i - rows/2, -10, j - rows/2);
+                this.dummy.position.set(i - rows / 2, -10, j - rows / 2);
                 this.dummy.updateMatrix();
                 this.instanced.setMatrixAt(index++, this.dummy.matrix);
             }
         }
 
         this.instanced.instanceMatrix.needsUpdate = true;
-        this.instanced.geometry.setAttribute('aRamdom', new THREE.InstancedBufferAttribute(random, 1)); 
+        this.instanced.geometry.setAttribute('aRamdom', new THREE.InstancedBufferAttribute(random, 1));
     }
 
 
@@ -175,7 +175,7 @@ class Sketch {
 
     render = () => {
         let { renderer, scene, camera, } = this;
-        if(renderer) {
+        if (renderer) {
             renderer.render(scene, camera);
         }
     }
