@@ -147,7 +147,7 @@ class Sketch {
 
     }
 
-    
+
     addSurrounding = () => {
         this.materialSurrounding = new THREE.ShaderMaterial({
             extensions: {
@@ -163,7 +163,7 @@ class Sketch {
             transparent: true
         });
 
-        this.geometrySurrounding = new THREE.SphereGeometry(1.2, 32, 32);
+        this.geometrySurrounding = new THREE.SphereGeometry(1.2, 64, 64);
 
         this.sunA = new THREE.Mesh(this.geometrySurrounding, this.materialSurrounding);
         this.scene.add(this.sunA);
