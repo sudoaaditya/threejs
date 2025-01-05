@@ -62,6 +62,7 @@ class Sketch {
         this.start();
     }
 
+    // Palette COlor Website: http://dev.thi.ng/gradients/
     settings = () => {
         this.settings = {
             iterations: 4,
