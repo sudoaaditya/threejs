@@ -24,16 +24,19 @@ void main() {
     for(int i = 0; i < 4; i++) {
         uv = fract(uv * 1.5) - 0.5;
 
-        float d = length(uv) *  exp(-length(uv0));
+        float d = length(uv) * exp(-length(uv0));
         vec3 color = palette(length(uv0) + float(i) * 0.4 + time * 0.4);
 
         d = sin(d * 8.0 + time) / 20.0;
+        // d = 5.0 - cos(d * 4.0 + time) / 20.0;
         d = abs(d);
         d = smoothstep(0.0, 0.1, d);
         d = pow(0.01 / d, 2.0);
+        // d *= pow(0.01 / d, 2.0);
 
         finalColor += color * d;
     }
 
+    gl_FragColor = vec4(uv, 0.0, 1.0);
     gl_FragColor = vec4(finalColor, 1.0);
 }
