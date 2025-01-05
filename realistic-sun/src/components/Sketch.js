@@ -147,7 +147,6 @@ class Sketch {
 
     }
 
-
     addSurrounding = () => {
         this.materialSurrounding = new THREE.ShaderMaterial({
             extensions: {
@@ -201,6 +200,11 @@ class Sketch {
         this.cubeCamera.update(this.renderer, this.sceneSun);
 
         this.materialSun.uniforms.uPerlin.value = this.cubeRenderTarget.texture;
+
+        this.samplerSun.rotation.y = this.elpasedTime * 0.03;
+        this.samplerSun.rotation.z = this.elpasedTime * 0.03;
+        this.sunA.rotation.y = this.elpasedTime * 0.03;
+        this.sunA.rotation.z = this.elpasedTime * 0.03;
 
         this.render();
 
