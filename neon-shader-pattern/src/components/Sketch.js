@@ -82,7 +82,7 @@ class Sketch {
             this.material.uniforms.uThickness.value = this.settings.thickness;
         });
 
-        this.gui.add(this.settings, 'uFractMultiplier', 0.5, 2, 0.1).onChange(() => {
+        this.gui.add(this.settings, 'uFractMultiplier', 0.5, 4, 0.1).onChange(() => {
             this.material.uniforms.uFractValue.value = this.settings.uFractMultiplier;
         });
 
