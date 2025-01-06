@@ -80,15 +80,16 @@ class StarField {
     }
 
     updateStarMap = (map) => {
+        this.starTexture = map;
         this.starsMaterial.uniforms.pointTexture.value = map;
     }
 
     updateStarSize = (size) => {
+        this.starSize = size;
         this.starsMaterial.uniforms.uSize.value = size;
     }
 
     updateFieldRadius = (radius) => {
-        console.log('updateFieldRadius');
         this.starsGeometry.dispose();
         this.starsMaterial.dispose();
         this.radiusOffset = radius;

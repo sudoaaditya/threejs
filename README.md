@@ -32,3 +32,7 @@
 - **Water Stream and caustics**: 
     - Water Caustics and deep water stream simulation  
     - [Live Demo](https://water-currents.vercel.app/)
+
+- **Generative Star Field**: 
+    - Generative & customizable starfield composer
+    - [Live Demo](https://starfield-nine.vercel.app/)

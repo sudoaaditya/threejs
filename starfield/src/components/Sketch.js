@@ -165,8 +165,8 @@ class Sketch {
     addContents = () => {
         // render base scene data!
         this.starField = new StarField({
-            starNumbers: this.settings.numberOfStars, 
-            starTexture: this.textures[4], 
+            starNumbers: this.settings.numberOfStars,
+            starTexture: this.textures[4],
             starSize: this.settings.starSize,
             radiusOffset: this.settings.fieldRadius
         });
