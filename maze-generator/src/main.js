@@ -1,7 +1,7 @@
 import './style.css'; import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { box } from './box';
 
+import GUI from 'lil-gui';
 class Sketch {
   constructor(container) {
     // Three Vars
@@ -16,12 +16,18 @@ class Sketch {
     this.height = 0;
     this.width = 0;
 
+    this.settings = {
+      gridSize: 700,
+      cellSize: 40,
+      highlightColor: "#B3ffff",
+      visitedColor: "#088478",
+    };
+
     // maze pars
     this.grid = new Array();
     this.stack = new Array();
     this.current = null;
-    this.rows = 600 / 20;
-    this.cols = 600 / 20;
+    this.rows = this.cols = Math.floor(this.settings.gridSize / this.settings.cellSize);
 
     this.initialize();
   }
@@ -51,6 +57,7 @@ class Sketch {
     this.render();
 
     //Setuup world
+    this.setSettings()
     this.addContents();
 
     //Start ANimation Loop
@@ -58,18 +65,13 @@ class Sketch {
   }
 
   setupCamera = () => {
-    this.camera = new THREE.PerspectiveCamera(
-      70,
-      (window.innerWidth / window.innerHeight),
-      0.001,
-      1000
-    );
+    this.camera = new THREE.OrthographicCamera(
+      -this.width / 2, this.width / 2,
+      this.height / 2, -this.height / 2,
+      -1000, 1000
+    )
 
-    // this.camera = new THREE.OrthographicCamera(-400, 400, 400, -400, 400, -400)
-
-    this.camera.position.set(300, 300, 500);
-
-    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.camera.position.set(this.settings.gridSize / 2, this.settings.gridSize / 2, 0);
   }
 
   setupResize = () => {
@@ -80,7 +82,11 @@ class Sketch {
     this.width = this.container.offsetWidth;
     this.height = this.container.offsetHeight;
 
-    this.camera.aspect = this.width / this.height;
+    // update orthographic camera
+    this.camera.left = -this.width / 2;
+    this.camera.right = this.width / 2;
+    this.camera.top = this.height / 2;
+    this.camera.bottom = -this.height / 2;
     this.camera.updateProjectionMatrix();
 
     this.renderer.setSize(this.width, this.height);
@@ -97,42 +103,88 @@ class Sketch {
     cancelAnimationFrame(this.frameId);
   };
 
+  setSettings = () => {
+    this.gui = new GUI();
+
+    this.gui.add(this.settings, 'gridSize', 100, 900, 10).onChange(() => {
+      this.reset();
+    });
+
+    this.gui.add(this.settings, 'cellSize', 10, 100, 10).onChange(() => {
+      this.reset();
+    });
+
+    const colorFOlder = this.gui.addFolder('Colors');
+
+    colorFOlder.addColor(this.settings, 'highlightColor').onChange(() => {
+      this.grid.forEach(box => box.updateColors(this.settings.visitedColor, this.settings.highlightColor));
+    });
+
+    colorFOlder.addColor(this.settings, 'visitedColor').onChange(() => {
+      this.grid.forEach(box => box.updateColors(this.settings.visitedColor, this.settings.highlightColor));
+    });
+
+  }
+
+  reset = () => {
+    this.resetting = true;
+    this.scene.remove(this.boxGroup);
+    this.grid = [];
+    this.stack = [];
+    this.current = null;
+    this.rows = Math.floor(this.settings.gridSize / this.settings.cellSize);
+    this.cols = Math.floor(this.settings.gridSize / this.settings.cellSize);
+
+    this.addContents();
+    this.resetting = false;
+  }
+
   addContents = () => {
+    this.boxGroup = new THREE.Group();
     for (var i = 0; i < this.rows; i++) {
       for (var j = 0; j < this.cols; j++) {
-        const boxB = new box(i, j, 600)
+        const boxB = new box(i, j, this.settings.gridSize, this.settings.cellSize)
         this.grid.push(boxB)
-        this.scene.add(boxB.boxMesh)
-        this.scene.add(...boxB.wallsMeshes);
+        this.boxGroup.add(boxB.boxMesh);
+        this.boxGroup.add(...boxB.wallsMeshes);
       }
     }
-    this.current = this.grid[0];
+    this.scene.add(this.boxGroup);
+    this.updateCameraPosition();
+
+    this.current = this.grid[this.rows - 1];
+  }
+
+  updateCameraPosition = () => {
+    this.camera.position.set(
+      this.settings.gridSize / 2,
+      this.settings.gridSize / 2,
+      this.settings.gridSize / this.settings.cellSize
+    );
+
+    this.camera.lookAt(this.settings.gridSize / 2, this.settings.gridSize / 2, 0);
   }
 
 
   update = () => {
-    // this.controls.update();
     this.render();
 
     this.grid.forEach(box => box.render());
 
     // algorithm!
-    this.current.visited = true;
-    this.current.highlightBox();
-
-    let iRetIdx = this.current.checkNeighbour(this.grid);
-    if (iRetIdx !== -1) {
-      let next = this.grid[iRetIdx];
-
-      next.visited = true;
-
-      this.stack.push(this.current);
-
-      this.removeWalls(this.current, next);
-
-      this.current = next;
-    } else if (this.stack.length) {
-      this.current = this.stack.pop();
+    if (!this.resetting) {
+      this.current.visited = true;
+      this.current.highlightBox();
+      let iRetIdx = this.current.checkNeighbour(this.grid);
+      if (iRetIdx !== -1) {
+        let next = this.grid[iRetIdx];
+        next.visited = true;
+        this.stack.push(this.current);
+        this.removeWalls(this.current, next);
+        this.current = next;
+      } else if (this.stack.length) {
+        this.current = this.stack.pop();
+      }
     }
 
     this.frameId = window.requestAnimationFrame(this.update);
@@ -164,7 +216,6 @@ class Sketch {
       b.walls[0] = false;
     }
   }
-
 }
 
 new Sketch(document.getElementById("webgl-canvas"))

@@ -1,18 +1,21 @@
-
 import * as THREE from 'three';
 
 class box {
-  constructor(x, y, size) {
+  constructor(x, y, size, cellSize) {
     this.x = x;
     this.y = y;
 
-    this.iBoxSize = 20;
+    this.iBoxSize = cellSize;
     this.size = size;
-    this.rows = this.cols = size / 20;
+    this.rows = this.cols = Math.floor(size / cellSize);
 
     this.visited = false;
 
     this.walls = new Array(4);
+
+    // colors
+    this.highlightColor = '#B3ffff';
+    this.visitedColor = '#088478';
 
     // meshes
     this.boxMesh = null;
@@ -33,45 +36,45 @@ class box {
     for (var i = 0; i < this.walls.length; i++) {
       this.walls[i] = true;
 
-      const points = [];
+      // const points = [];
       let center, rotAngleX = 0;
       let boxGeo;
       if (i === 0) {
         //top wall
-        points.push(new THREE.Vector3(iX, iY, 0));
-        points.push(new THREE.Vector3(iX + this.iBoxSize, iY, 0));
+        // points.push(new THREE.Vector3(iX, iY, 0));
+        // points.push(new THREE.Vector3(iX + this.iBoxSize, iY, 0));
 
         center = this.getCenter(new THREE.Vector3(iX, iY, 0), new THREE.Vector3(iX + this.iBoxSize, iY, 0), this.iBoxSize / 2);
-        boxGeo = new THREE.BoxGeometry(20, 2, 1); // def for bot and top
+        boxGeo = new THREE.BoxGeometry(this.iBoxSize, 2, 1); // def for bot and top
       }
 
       if (i === 1) {
         //right wall
-        points.push(new THREE.Vector3(iX + this.iBoxSize, iY, 0));
-        points.push(new THREE.Vector3(iX + this.iBoxSize, iY + this.iBoxSize, 0));
+        // points.push(new THREE.Vector3(iX + this.iBoxSize, iY, 0));
+        // points.push(new THREE.Vector3(iX + this.iBoxSize, iY + this.iBoxSize, 0));
 
         center = this.getCenter(new THREE.Vector3(iX + this.iBoxSize, iY, 0), new THREE.Vector3(iX + this.iBoxSize, iY + this.iBoxSize, 0), this.iBoxSize / 2);
         rotAngleX = 90;
-        boxGeo = new THREE.BoxGeometry(2, 20, 1);
+        boxGeo = new THREE.BoxGeometry(2, this.iBoxSize, 1);
       }
 
       if (i === 2) {
         //bottom wall
-        points.push(new THREE.Vector3(iX + this.iBoxSize, iY + this.iBoxSize, 0));
-        points.push(new THREE.Vector3(iX, iY + this.iBoxSize, 0));
+        // points.push(new THREE.Vector3(iX + this.iBoxSize, iY + this.iBoxSize, 0));
+        // points.push(new THREE.Vector3(iX, iY + this.iBoxSize, 0));
 
         center = this.getCenter(new THREE.Vector3(iX + this.iBoxSize, iY + this.iBoxSize, 0), new THREE.Vector3(iX, iY + this.iBoxSize, 0), this.iBoxSize / 2);
-        boxGeo = new THREE.BoxGeometry(20, 2, 1); // def for bot and top
+        boxGeo = new THREE.BoxGeometry(this.iBoxSize, 2, 1); // def for bot and top
       }
 
       if (i === 3) {
         //left wall
-        points.push(new THREE.Vector3(iX, iY + this.iBoxSize, 0));
-        points.push(new THREE.Vector3(iX, iY, 0));
+        // points.push(new THREE.Vector3(iX, iY + this.iBoxSize, 0));
+        // points.push(new THREE.Vector3(iX, iY, 0));
 
         center = this.getCenter(new THREE.Vector3(iX, iY + this.iBoxSize, 0), new THREE.Vector3(iX, iY, 0), this.iBoxSize / 2);
         rotAngleX = 90;
-        boxGeo = new THREE.BoxGeometry(2, 20, 1);
+        boxGeo = new THREE.BoxGeometry(2, this.iBoxSize, 1);
       }
 
       /* const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
@@ -87,14 +90,6 @@ class box {
       boxMesh.rotateY(THREE.MathUtils.degToRad(rotAngleX));
       boxMesh.renderOrder = 1;
       this.wallsMeshes[i] = boxMesh;
-
-      /* const point = new THREE.Mesh(
-        new THREE.SphereGeometry(2, 32, 32),
-        new THREE.MeshBasicMaterial({ color: "yellow" })
-      );
-      point.position.copy(center);
-
-      this.pointMeshs[i] = point; */
 
       // need to draw box later!
       const planeGeo = new THREE.BufferGeometry();
@@ -163,7 +158,7 @@ class box {
     if (i < 0 || j < 0 || i > this.cols - 1 || j > this.rows - 1) {
       return (-1);
     }
-    return (j + (i * this.cols));
+    return Math.floor((j + (i * this.cols)));
   }
 
   getRandom = (min, max) => {
@@ -186,15 +181,20 @@ class box {
     }
 
     if (this.visited) {
-      this.boxMesh.material = new THREE.MeshBasicMaterial({ color: '#d135fe' });
+      this.boxMesh.material = new THREE.MeshBasicMaterial({ color: this.visitedColor }); //#d135fe
       this.boxMesh.material.needsUpdate = true;
     }
   }
 
   highlightBox = () => {
-    this.boxMesh.material = new THREE.MeshBasicMaterial({ color: 'red' });
+    this.boxMesh.material = new THREE.MeshBasicMaterial({ color: this.highlightColor });
     this.boxMesh.material.needsUpdate = true;
     this.boxMesh.visible = true;
+  }
+
+  updateColors = (vs, hc) => {
+    this.visitedColor = vs;
+    this.highlightColor = hc;
   }
 
 }
