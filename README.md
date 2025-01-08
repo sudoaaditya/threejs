@@ -36,3 +36,7 @@
 - **Generative Star Field**: 
     - Generative & customizable starfield composer
     - [Live Demo](https://starfield-nine.vercel.app/)
+
+- **Maze Generator**: 
+    - Maze generator using DFS algorithm
+    - [Live Demo](https://maze-generator-tau.vercel.app/)
