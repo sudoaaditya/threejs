@@ -1,11 +1,16 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/Addons.js';
+import { 
+    OrbitControls, RenderPass, 
+    ShaderPass, UnrealBloomPass, 
+    EffectComposer 
+} from 'three/examples/jsm/Addons.js';
 
 import GUI from 'lil-gui';
 
 // shaders
-// import vertexShader from './shaders/vertex.glsl';
-// import fragmentShader from './shaders/fragment.glsl';
+import vertexShader from './shaders/vertex.glsl';
+import fragmentShader from './shaders/fragment.glsl';
+import noiseShaderFunc from './shaders/include/noise3d.glsl';
 
 class Sketch {
 
@@ -45,34 +50,52 @@ class Sketch {
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setClearColor(0x000000, 1);
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        this.renderer.toneMappingExposure = Math.pow(1, 4.0);
 
         this.clock = new THREE.Clock();
 
         // camera & resize
         this.setupCamera();
+
+        // world setup
+        this.materialShaders = [];
+        this.materialInst = [];
+        this.darkMaterial = this.createMaterial("basic", 0x000000, 0, false);
+        this.materials = {};
+
+        this.layerNames = {
+            ENTIRE_SCENE: 0,
+            BLOOM_SCENE: 1
+        }
+        this.bloomLayer = new THREE.Layers();
+        this.bloomLayer.set(this.layerNames.BLOOM_SCENE);
+
+        this.settings();
+        this.loadTextures();
+
+        this.addComposer();
+        this.addLights();
+        this.addContents();
+
         this.setupResize();
 
         // wramup calls
-        this.resize();
-        this.render();
-
-        // world setup
-        this.settings();
-        this.loadTextures();
-        this.addContents();
+        // this.resize();
+        // this.render();
 
         // start animation loop
         this.start();
     }
 
     settings = () => {
-        this.settings = {
-            progress: 0
+        this.params = {
+            exposure: 1,
+            bloomStrength: 2.5,
+            bloomThreshold: 0,
+            bloomRadius: 0
         };
 
     }
-
-
 
     loadTextures = () => {
         const texPaths = []
@@ -83,13 +106,13 @@ class Sketch {
     setupCamera = () => {
 
         this.camera = new THREE.PerspectiveCamera(
-            35,
+            60,
             (this.sizes.width / this.sizes.height),
             0.1,
             1000
         );
 
-        this.camera.position.set(0, 0, 4);
+        this.camera.position.set(0, 4, 10);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     }
@@ -106,7 +129,10 @@ class Sketch {
         this.camera.aspect = this.sizes.width / this.sizes.height;
         this.camera.updateProjectionMatrix();
 
-        this.renderer.setSize(this.sizes.width, this.sizes.height)
+        this.renderer.setSize(this.sizes.width, this.sizes.height);
+
+        this.bloomComposer.setSize(this.sizes.width, this.sizes.height);
+        this.finalComposer.setSize(this.sizes.width, this.sizes.height);
     }
 
     start = () => {
@@ -119,8 +145,167 @@ class Sketch {
         cancelAnimationFrame(this.frameId);
     }
 
+    addLights = () => {
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(1, 10, 1);
+        this.scene.add(light);
+
+        this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    }
+
+    addComposer = () => {
+        this.renderScene = new RenderPass(this.scene, this.camera);
+        this.bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(this.sizes.width, this.sizes.height),
+            this.params.bloomStrength,
+            this.params.bloomRadius,
+            this.params.bloomThreshold
+        );
+
+        this.bloomComposer = new EffectComposer(this.renderer);
+        this.bloomComposer.renderToScreen = false;
+        this.bloomComposer.setSize(this.sizes.width, this.sizes.height);
+
+        this.bloomComposer.addPass(this.renderScene);
+        this.bloomComposer.addPass(this.bloomPass);
+
+
+        this.finalPass = new ShaderPass(
+            new THREE.ShaderMaterial({
+                vertexShader,
+                fragmentShader,
+                uniforms: {
+                    baseTexture: new THREE.Uniform(null),
+                    bloomTexture: new THREE.Uniform(this.bloomComposer.renderTarget2.texture)
+                }
+            }),
+            "baseTexture"
+        );
+
+        this.finalPass.needsSwap = true;
+
+        this.finalComposer = new EffectComposer(this.renderer);
+        this.finalComposer.setSize(this.sizes.width, this.sizes.height);
+
+        this.finalComposer.addPass(this.renderScene);
+        this.finalComposer.addPass(this.finalPass);
+    }
+
     addContents = () => {
         // render base scene data!
+
+        this.boxPos = new THREE.PlaneGeometry(22, 22, 99, 99);
+        this.boxPos.rotateX(-Math.PI * 0.5);
+
+        this.sphereGeom = new THREE.SphereGeometry(0.15, 16, 8);
+
+        this.instancedGeom = new THREE.InstancedBufferGeometry();
+        this.instancedGeom.attributes.position = this.sphereGeom.attributes.position;
+        this.instancedGeom.attributes.normal = this.sphereGeom.attributes.normal;
+        this.instancedGeom.index = this.sphereGeom.index;
+        
+        this.instancedGeom.setAttribute(
+            "aInstPosition",
+            new THREE.InstancedBufferAttribute(this.boxPos.attributes.position.array, 3)
+        );
+        this.instancedGeom.setAttribute(
+            "aInstUv",
+            new THREE.InstancedBufferAttribute(this.boxPos.attributes.uv.array, 2)
+        );
+
+        this.instanceOne = new THREE.Mesh(
+            this.instancedGeom,
+            this.createMaterial("standard", 0x222244, 0, false)
+        );
+        this.scene.add(this.instanceOne);
+
+        this.instanceTwo = new THREE.Mesh(
+            this.instancedGeom,
+            this.createMaterial("basic", 0x6622CC, 1, true)
+        );
+        this.scene.add(this.instanceTwo);
+    }
+
+    createMaterial = (type, color, isTip, changeColor) => {
+        let mat = 
+            type === "basic"
+                ? new THREE.MeshBasicMaterial()
+                : new THREE.MeshStandardMaterial();
+
+        mat.color.set(color);
+
+        if(type === "standard") {
+            mat.metalness = 0.25;
+            mat.roughness = 0.75;
+        }
+
+        mat.onBeforeCompile = (shader) => {
+            shader.uniforms.uTime = new THREE.Uniform(1.0);
+            shader.uniforms.uIsTip = new THREE.Uniform(0.0);
+
+            shader.vertexShader = 
+            ` 
+            uniform float uTime;
+            uniform float uIsTip;
+
+            attribute vec3 aInstPosition;
+            attribute vec2 aInstUv;
+            ` + noiseShaderFunc + "\n" + shader.vertexShader;
+
+            shader.vertexShader = shader.vertexShader.replace(
+                `#include <begin_vertex>`,
+                `
+                vec3 transformed = vec3(position);
+
+                vec3 ip = aInstPosition;
+                vec2 iUv = aInstUv;
+
+                iUv.y += uTime * 0.125;
+                iUv *= vec2(3.14);
+                float wave = snoise(vec3(iUv, 0.0));
+
+                ip.y = wave * 3.5;
+
+                float lim = 2.0;
+                bool tip = uIsTip < 0.5 ? ip.y > lim : ip.y <= lim;
+                transformed *= tip ? 0.0 : 1.0;
+
+                transformed = transformed + ip;
+                `
+            );
+
+            this.materialShaders.push({
+                id: 'mat' + this.materialShaders.length,
+                shader,
+                isTip,
+                changeColor,
+            });
+            this.materialInst.push(mat)
+        };
+
+        return mat;
+    }
+
+    darkenNonBloomed = (obj) => {
+        if(obj.isMesh && this.bloomLayer.test(obj.layers) === false) {
+            this.materials[obj.uuid] = obj.material;
+            obj.material = this.darkMaterial;
+        }
+        this.renderer.setClearColor(0x000000);
+    }
+
+    restoreMaterial = (obj) => {
+        if(this.materials[obj.uuid]) {
+            obj.material = this.materials[obj.uuid];
+            delete this.materials[obj.uuid];
+        }
+        this.renderer.setClearColor(0x332233);
+    }
+
+    renderBloom = () => {
+        this.scene.traverse(this.darkenNonBloomed);
+        this.bloomComposer.render();
+        this.scene.traverse(this.restoreMaterial);
     }
 
     update = () => {
@@ -134,10 +319,16 @@ class Sketch {
     }
 
     render = () => {
-        let { renderer, scene, camera, } = this;
-        if (renderer) {
-            renderer.render(scene, camera);
-        }
+        this.materialShaders.forEach((mat, idx) => {
+            const time = this.elpasedTime;
+            mat.shader.uniforms.uTime.value = time * 0.5;
+            mat.shader.uniforms.uIsTip.value = mat.isTip;
+            if(mat.changeColor) {
+                this.materialInst[idx].color.setHSL(time * 0.1 % 1.0, 0.625, 0.375);
+            }
+        });
+
+        this.renderBloom();
     }
 }
 
