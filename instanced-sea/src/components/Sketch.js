@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { 
-    OrbitControls, RenderPass, 
-    ShaderPass, UnrealBloomPass, 
-    EffectComposer 
+import {
+    OrbitControls, RenderPass,
+    ShaderPass, UnrealBloomPass,
+    EffectComposer
 } from 'three/examples/jsm/Addons.js';
 
 import GUI from 'lil-gui';
@@ -95,6 +95,26 @@ class Sketch {
             bloomRadius: 0
         };
 
+        const bloomFolder = this.gui.addFolder("Bloom Settings")
+
+        bloomFolder.add(this.params, "bloomThreshold", 0.0, 1.0, 0.1).onChange((value) => {
+            this.bloomPass.threshold = Number(value);
+        })
+
+        bloomFolder.add(this.params, "bloomStrength", 0.0, 3.0, 0.1).onChange((value) => {
+            this.bloomPass.strength = Number(value);
+        })
+
+        bloomFolder.add(this.params, "bloomRadius", 0.0, 1.0, 0.01).onChange((value) => {
+            this.bloomPass.radius = Number(value);
+        })
+
+        const toneMappingFolder = this.gui.addFolder('Tone Mapping');
+
+        toneMappingFolder.add(this.params, 'exposure', 0.5, 5).onChange((value) => {
+            this.renderer.toneMappingExposure = Math.pow(value, 4.0);
+        });
+
     }
 
     loadTextures = () => {
@@ -157,10 +177,14 @@ class Sketch {
         this.renderScene = new RenderPass(this.scene, this.camera);
         this.bloomPass = new UnrealBloomPass(
             new THREE.Vector2(this.sizes.width, this.sizes.height),
-            this.params.bloomStrength,
-            this.params.bloomRadius,
-            this.params.bloomThreshold
+            1.5,
+            0.4,
+            0.85
         );
+
+        this.bloomPass.threshold = this.params.bloomThreshold;
+        this.bloomPass.radius = this.params.bloomRadius;
+        this.bloomPass.strength = this.params.bloomStrength;
 
         this.bloomComposer = new EffectComposer(this.renderer);
         this.bloomComposer.renderToScreen = false;
@@ -203,7 +227,7 @@ class Sketch {
         this.instancedGeom.attributes.position = this.sphereGeom.attributes.position;
         this.instancedGeom.attributes.normal = this.sphereGeom.attributes.normal;
         this.instancedGeom.index = this.sphereGeom.index;
-        
+
         this.instancedGeom.setAttribute(
             "aInstPosition",
             new THREE.InstancedBufferAttribute(this.boxPos.attributes.position.array, 3)
@@ -227,14 +251,14 @@ class Sketch {
     }
 
     createMaterial = (type, color, isTip, changeColor) => {
-        let mat = 
+        let mat =
             type === "basic"
                 ? new THREE.MeshBasicMaterial()
                 : new THREE.MeshStandardMaterial();
 
         mat.color.set(color);
 
-        if(type === "standard") {
+        if (type === "standard") {
             mat.metalness = 0.25;
             mat.roughness = 0.75;
         }
@@ -243,8 +267,8 @@ class Sketch {
             shader.uniforms.uTime = new THREE.Uniform(1.0);
             shader.uniforms.uIsTip = new THREE.Uniform(0.0);
 
-            shader.vertexShader = 
-            ` 
+            shader.vertexShader =
+                ` 
             uniform float uTime;
             uniform float uIsTip;
 
@@ -287,7 +311,7 @@ class Sketch {
     }
 
     darkenNonBloomed = (obj) => {
-        if(obj.isMesh && this.bloomLayer.test(obj.layers) === false) {
+        if (obj.isMesh && this.bloomLayer.test(obj.layers) === false) {
             this.materials[obj.uuid] = obj.material;
             obj.material = this.darkMaterial;
         }
@@ -295,7 +319,7 @@ class Sketch {
     }
 
     restoreMaterial = (obj) => {
-        if(this.materials[obj.uuid]) {
+        if (this.materials[obj.uuid]) {
             obj.material = this.materials[obj.uuid];
             delete this.materials[obj.uuid];
         }
@@ -323,12 +347,14 @@ class Sketch {
             const time = this.elpasedTime;
             mat.shader.uniforms.uTime.value = time * 0.5;
             mat.shader.uniforms.uIsTip.value = mat.isTip;
-            if(mat.changeColor) {
+            if (mat.changeColor) {
                 this.materialInst[idx].color.setHSL(time * 0.1 % 1.0, 0.625, 0.375);
             }
         });
 
         this.renderBloom();
+
+        this.finalComposer.render();
     }
 }
 
