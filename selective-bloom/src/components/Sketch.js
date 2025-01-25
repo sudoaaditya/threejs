@@ -80,8 +80,8 @@ class Sketch {
         this.setupResize();
 
         // wramup calls
-        // this.resize();
-        // this.render();
+        this.resize();
+        this.render();
 
         // start animation loop
         this.start();
@@ -105,13 +105,13 @@ class Sketch {
             this.bloomPass.strength = Number(value);
         })
 
-        bloomFolder.add(this.params, "bloomRadius", 0.0, 1.0, 0.01).onChange((value) => {
+        bloomFolder.add(this.params, "bloomRadius", 0.0, 2.0, 0.01).onChange((value) => {
             this.bloomPass.radius = Number(value);
         })
 
         const toneMappingFolder = this.gui.addFolder('Tone Mapping');
 
-        toneMappingFolder.add(this.params, 'exposure', 0.5, 5).onChange((value) => {
+        toneMappingFolder.add(this.params, 'exposure', 0.0, 3.0, 0.05).onChange((value) => {
             this.renderer.toneMappingExposure = Math.pow(value, 4.0);
         });
 
@@ -132,7 +132,7 @@ class Sketch {
             1000
         );
 
-        this.camera.position.set(0, 4, 10);
+        this.camera.position.set(0, 10, 35);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     }
@@ -218,7 +218,7 @@ class Sketch {
     addContents = () => {
         // render base scene data!
 
-        this.boxPos = new THREE.PlaneGeometry(22, 22, 99, 99);
+        this.boxPos = new THREE.PlaneGeometry(50, 50, 130, 130);
         this.boxPos.rotateX(-Math.PI * 0.5);
 
         this.sphereGeom = new THREE.SphereGeometry(0.15, 16, 8);
@@ -241,6 +241,8 @@ class Sketch {
             this.instancedGeom,
             this.createMaterial("standard", 0x222244, 0, false)
         );
+        // this.instanceOne.layers.enable(this.layerNames.BLOOM_SCENE);
+
         this.scene.add(this.instanceOne);
 
         this.instanceTwo = new THREE.Mesh(
@@ -288,14 +290,16 @@ class Sketch {
                 iUv.y += uTime * 0.125;
                 iUv *= vec2(3.14);
                 float wave = snoise(vec3(iUv, 0.0));
+                // wave += snoise(vec3(iUv, 0.0) * sin(uTime * 0.02));
+                // wave += snoise(vec3(iUv, 0.0) * sin(uTime * 0.05));
 
-                ip.y = wave * 3.5;
+                ip.y = wave * 5.5;
 
                 float lim = 2.0;
                 bool tip = uIsTip < 0.5 ? ip.y > lim : ip.y <= lim;
                 transformed *= tip ? 0.0 : 1.0;
 
-                transformed = transformed + ip;
+                transformed = (transformed + ip) * 2.0;
                 `
             );
 
