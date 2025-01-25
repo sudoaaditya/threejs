@@ -90,7 +90,7 @@ class Sketch {
     settings = () => {
         this.params = {
             exposure: 1,
-            bloomStrength: 2.5,
+            bloomStrength: 0.9,
             bloomThreshold: 0,
             bloomRadius: 0
         };
@@ -247,6 +247,7 @@ class Sketch {
             this.instancedGeom,
             this.createMaterial("basic", 0x6622CC, 1, true)
         );
+        this.instanceTwo.layers.enable(this.layerNames.BLOOM_SCENE);
         this.scene.add(this.instanceTwo);
     }
 
