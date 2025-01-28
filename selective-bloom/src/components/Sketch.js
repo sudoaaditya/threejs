@@ -290,8 +290,8 @@ class Sketch {
                 iUv.y += uTime * 0.125;
                 iUv *= vec2(3.14);
                 float wave = snoise(vec3(iUv, 0.0));
-                // wave += snoise(vec3(iUv, 0.0) * sin(uTime * 0.02));
-                // wave += snoise(vec3(iUv, 0.0) * sin(uTime * 0.05));
+                // wave += snoise(vec3(iUv/2.0, 0.0));
+                wave += snoise(vec3(iUv/4.0, 0.0));
 
                 ip.y = wave * 5.5;
 
