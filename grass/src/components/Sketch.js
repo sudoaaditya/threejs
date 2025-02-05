@@ -4,8 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/Addons.js';
 import GUI from 'lil-gui';
 
 // shaders
-import vertexShader from './shaders/vertex.glsl';
-import fragmentShader from './shaders/fragment.glsl';
+import { Grass } from './Grass';
 
 class Sketch {
 
@@ -41,8 +40,10 @@ class Sketch {
         });
         this.renderer.setSize(this.sizes.width, this.sizes.height);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        this.renderer.setClearColor(0x000000, 1);
+        this.renderer.setClearColor(0xc2d5e2, 1);
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+        this.renderer.toneMapping = THREE.ReinhardToneMapping;
+        this.renderer.physicallyCorrectLights = true;
 
         this.clock = new THREE.Clock();
 
@@ -56,6 +57,7 @@ class Sketch {
 
         // world setup
         this.settings()
+        this.addLights();
         this.addContents();
 
         // start animation loop
@@ -67,7 +69,6 @@ class Sketch {
     }
 
     setupCamera = () => {
-
         this.camera = new THREE.PerspectiveCamera(
             35,
             (this.sizes.width / this.sizes.height),
@@ -75,7 +76,7 @@ class Sketch {
             1000
         );
 
-        this.camera.position.set(0, 0, 4);
+        this.camera.position.set(30, 5, 10);
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     }
@@ -105,31 +106,26 @@ class Sketch {
         cancelAnimationFrame(this.frameId);
     }
 
+    addLights = () => {
+        this.scene.add(new THREE.AmbientLight(0xffffff, 1));
+
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(20, 20, 20);
+        this.scene.add(pointLight);
+    }
+
     addContents = () => {
         // render base scene data!
-        this.material = new THREE.ShaderMaterial({
-            extensions: {
-                derivatives: "#extension GL_OES_standard_derivatives : enable"
-            },
-            side: THREE.DoubleSide,
-            uniforms: {
-                time: new THREE.Uniform(0),
-                uResolution: new THREE.Uniform(new THREE.Vector2(this.sizes.width, this.sizes.height)),
-            },
-            vertexShader: vertexShader,
-            fragmentShader: fragmentShader,
-        });
+        this.grassObject = new Grass({bW: 0.12, bH: 1.2, joints: 5}, 100, 50000);
 
-        this.geometry = new THREE.PlaneGeometry(1, 1);
-
-        this.plane = new THREE.Mesh(this.geometry, this.material);
-        this.scene.add(this.plane);
+        this.scene.add(this.grassObject.meshGrond);
+        this.scene.add(this.grassObject.mesh);
     }
 
     update = () => {
         this.elpasedTime = this.clock.getElapsedTime();
 
-        this.material.uniforms.time.value = this.elpasedTime;
+        this.grassObject.update(this.elpasedTime);
 
         this.render();
 
