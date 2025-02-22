@@ -40,3 +40,7 @@
 - **Maze Generator**: 
     - Maze generator using DFS algorithm
     - [Live Demo](https://maze-generator-tau.vercel.app/)
+
+- **Instanced Grass**: 
+    - Grass implemented with instancing
+    - [Live Demo](https://instanced-grass.vercel.app/)
