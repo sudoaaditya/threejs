@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-// import GUI from "lil-gui";
+import GUI from "lil-gui";
 import VirtualScroll from 'virtual-scroll'
 
 //Shaders
@@ -106,15 +106,16 @@ class Sketch {
     setupSettings = () => {
         this.settings = {
             progress: 0,
+            speedValue: 0.05
         };
-        /* this.gui = new GUI();
-        this.gui.add(this.settings, "progress", 0, 1, 0.01).onChange((val) => {
-            this.material2.uniforms.progress.value = val;
-        }); */
+        this.gui = new GUI();
+        this.gui.add(this.settings, "speedValue", 0, 0.1, 0.01).onChange((val) => {
+            this.settings.speedValue = val;
+        });
         const scroller = new VirtualScroll()
         scroller.on(event => {
             console.log(event.deltaY);
-            this.settings.progress += event.deltaY < 0 ? -0.05 : 0.05;
+            this.settings.progress += event.deltaY < 0 ? (-1 * this.settings.speedValue) : this.settings.speedValue;
             if (this.settings.progress >= 1) {
                 this.settings.progress = 1;
             } else if (this.settings.progress <= 0) {
