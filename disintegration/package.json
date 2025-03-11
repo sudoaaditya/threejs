@@ -21,8 +21,7 @@
     "start": "rescripts start",
     "build": "rescripts build",
     "test": "rescripts test",
-    "eject": "rescripts eject",
-    "postinstall": "npm install --legacy-peer-deps"
+    "eject": "rescripts eject"
   },
   "eslintConfig": {
     "extends": [
