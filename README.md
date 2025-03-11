@@ -8,6 +8,7 @@
 
 - **Mesh Disintegration**: 
     - Mesh disintegration effect with verticle scroll
+    - [Live Demo](https://mesh-disintegration.vercel.app/)
 
 - **Image Distortion**: 
     - Image distortion effect with custom pass
