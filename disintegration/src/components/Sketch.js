@@ -34,14 +34,14 @@ class Sketch {
         this.width = this.container.offsetWidth;
         this.height = this.container.offsetHeight;
 
-        this.renderer = new THREE.WebGLRenderer({antialias: true});
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setSize(this.width, this.height);
         this.renderer.setClearColor('#eeeeee', 1);
         this.renderer.physicallyCorrectLights = true;
         this.renderer.outputEncoding = THREE.sRGBEncoding;
         this.renderer.shadowMap.enabled = true;
-		this.renderer.shadowMap.type = THREE.PCFShadowMap;
+        this.renderer.shadowMap.type = THREE.PCFShadowMap;
 
         this.container.appendChild(this.renderer.domElement);
 
@@ -67,7 +67,7 @@ class Sketch {
     setupCamera = () => {
         this.camera = new THREE.PerspectiveCamera(
             70,
-            (window.innerWidth/window.innerHeight),
+            (window.innerWidth / window.innerHeight),
             0.001,
             1000
         );
@@ -94,7 +94,7 @@ class Sketch {
 
     start = () => {
         // if already initalized then leave it be
-        if(!this.frameId) {
+        if (!this.frameId) {
             this.frameId = requestAnimationFrame(this.update);
         }
     }
@@ -114,10 +114,10 @@ class Sketch {
         const scroller = new VirtualScroll()
         scroller.on(event => {
             console.log(event.deltaY);
-            this.settings.progress += event.deltaY < 0 ? -0.01 : 0.01;
-            if(this.settings.progress >= 1) {
+            this.settings.progress += event.deltaY < 0 ? -0.05 : 0.05;
+            if (this.settings.progress >= 1) {
                 this.settings.progress = 1;
-            } else if(this.settings.progress <= 0) {
+            } else if (this.settings.progress <= 0) {
                 this.settings.progress = 0;
             }
 
@@ -130,7 +130,7 @@ class Sketch {
         //Floot
         const floor = new THREE.Mesh(
             new THREE.PlaneGeometry(15, 15, 100, 100),
-            new THREE.MeshStandardMaterial({color: 0xffffff})
+            new THREE.MeshStandardMaterial({ color: 0xffffff })
         );
 
         floor.rotation.x = - Math.PI * 0.5;
@@ -142,21 +142,21 @@ class Sketch {
         this.material = new THREE.ShaderMaterial({
             extensions: {
                 derivatives: "#extension GL_OES_standard_derivatives : enable"
-                },
-                side: THREE.DoubleSide,
-                uniforms: {
-                    time: { type: "f", value: 0 },
-                    resolution: { type: "v4", value: new THREE.Vector4() },
-                    uvRate1: {
-                        value: new THREE.Vector2(1, 1)
-                    }
-                },
-                wireframe: true,
-                // transparent: true,
-                vertexShader: vertexShader,
-                fragmentShader: fragmentShader
-            });
-        
+            },
+            side: THREE.DoubleSide,
+            uniforms: {
+                time: { type: "f", value: 0 },
+                resolution: { type: "v4", value: new THREE.Vector4() },
+                uvRate1: {
+                    value: new THREE.Vector2(1, 1)
+                }
+            },
+            wireframe: true,
+            // transparent: true,
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader
+        });
+
         this.geometry = new THREE.IcosahedronGeometry(1, 9, 9);
         // this.geometry = new THREE.SphereGeometry(1, 32, 32).toNonIndexed();
 
@@ -164,13 +164,13 @@ class Sketch {
         let randoms = new Float32Array(len);
         let centers = new Float32Array(len * 3);
 
-        for (let i = 0; i < len; i+=3) {
+        for (let i = 0; i < len; i += 3) {
             const r = Math.random();
             randoms[i] = r;
             randoms[i + 1] = r;
             randoms[i + 2] = r;
 
-            let x = this.geometry.attributes.position.array[i * 3    ];
+            let x = this.geometry.attributes.position.array[i * 3];
             let y = this.geometry.attributes.position.array[i * 3 + 1];
             let z = this.geometry.attributes.position.array[i * 3 + 2];
 
@@ -192,7 +192,7 @@ class Sketch {
         this.geometry.setAttribute('aRandom', new THREE.BufferAttribute(randoms, 1));
         this.geometry.setAttribute('aCenter', new THREE.BufferAttribute(centers, 3));
 
-        this.material2 = extendMaterial( THREE.MeshStandardMaterial, {
+        this.material2 = extendMaterial(THREE.MeshStandardMaterial, {
 
             class: CustomMaterial,  // In this case ShaderMaterial would be fine too, just for some features such as envMap this is required
 
@@ -236,7 +236,7 @@ class Sketch {
 
                 `
             },
-        
+
             uniforms: {
                 roughness: 0.75,
                 time: {
@@ -250,11 +250,11 @@ class Sketch {
                     value: 0
                 }
             }
-        
-        } );
+
+        });
 
         this.material2.uniforms.diffuse.value = new THREE.Color(0xff0000);
-    
+
         this.plane = new THREE.Mesh(this.geometry, this.material2);
 
         this.plane.customDepthMaterial = extendMaterial(THREE.MeshDepthMaterial, {
@@ -272,9 +272,9 @@ class Sketch {
         light2.position.set(0.5, 0, 0.866) //60deg
         this.scene.add(light2); */
 
-        const light = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI / 5, 0.3 );
-        light.position.set( 0, 2, 2 );
-        light.target.position.set( 0, 0, 0 );
+        const light = new THREE.SpotLight(0xffffff, 1, 0, Math.PI / 5, 0.3);
+        light.position.set(0, 2, 2);
+        light.target.position.set(0, 0, 0);
 
         light.castShadow = true;
         light.shadow.camera.near = 0.1;
@@ -284,7 +284,7 @@ class Sketch {
         light.shadow.mapSize.width = 2048;
         light.shadow.mapSize.height = 2048;
 
-        this.scene.add( light );
+        this.scene.add(light);
     }
 
 
@@ -301,7 +301,7 @@ class Sketch {
 
     render = () => {
         let { renderer, scene, camera, } = this;
-        if(renderer) {
+        if (renderer) {
             renderer.render(scene, camera);
         }
     }

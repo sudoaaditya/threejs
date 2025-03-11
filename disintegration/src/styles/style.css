@@ -11,3 +11,19 @@
 canvas {
     display: block;
 }
+
+.textHelper {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    margin: 20px 20px;
+    background-color: burlywood;
+    padding: 16px;
+    border-radius: 2px;
+}
+
+.textHelper span {
+    font-size: 18px;
+    font-family: Arial, Helvetica, sans-serif;
+}

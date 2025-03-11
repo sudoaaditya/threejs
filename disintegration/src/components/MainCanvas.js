@@ -8,7 +8,7 @@ class MainCanvas extends React.Component {
         this.container = null;
     }
 
-    componentDidMount() { 
+    componentDidMount() {
         //initialize scene
         this.sketch = new Sketch(this.container);
     }
@@ -17,10 +17,15 @@ class MainCanvas extends React.Component {
         //stop renderering
         this.sketch.stop();
     }
-    
+
     render() {
         return (
-        <div id='container' ref={ref => (this.container = ref)}></div>
+            <>
+                <div id='container' ref={ref => (this.container = ref)} />
+                <div className="textHelper">
+                    <span>Scroll for effect!</span>
+                </div>
+            </>
         )
     }
 }

@@ -25,10 +25,6 @@
     - Water Ripple trail implementation on mouse-move 
     - [Live Demo](https://water-ripples-cursor.vercel.app/)
 
-- **Water Ripples with Mousemove**: 
-    - Water Ripple trail implementation on mouse-move 
-    - [Live Demo](https://water-ripples-cursor.vercel.app/)
-
 - **Water Stream and caustics**: 
     - Water Caustics and deep water stream simulation  
     - [Live Demo](https://water-currents.vercel.app/)
