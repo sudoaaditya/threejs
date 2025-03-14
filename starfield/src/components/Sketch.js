@@ -72,6 +72,7 @@ class Sketch {
             numberOfStars: 1000,
             fieldRadius: 25,
             starSize: 10,
+            twinkle: false,
             texture1: () => this.changeTexture(0),
             texture2: () => this.changeTexture(1),
             texture3: () => this.changeTexture(2),
@@ -94,6 +95,10 @@ class Sketch {
 
         this.gui.add(this.settings, 'starSize', 1, 100, 1).onChange(() => {
             this.starField.updateStarSize(this.settings.starSize);
+        });
+
+        this.gui.add(this.settings, 'twinkle', false).onChange(() => {
+            this.starField.updateTwinkle(this.settings.twinkle);
         });
 
         const texFolder = this.gui.addFolder('Textures');

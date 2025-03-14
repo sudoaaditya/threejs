@@ -10,6 +10,7 @@ class StarField {
         this.starTexture = starTexture;
         this.starSize = starSize;
         this.radiusOffset = radiusOffset;
+        this.isTwinkling = false;
 
         this.stars = null;
         this.starsMaterial = null;
@@ -45,6 +46,7 @@ class StarField {
         let positions = [];
         let vertices = [];
         // let sizes = [];
+        let randoms = [];
         let col;
 
         for (let i = 0; i < this.starNumbers; i++) {
@@ -57,17 +59,20 @@ class StarField {
             vertices.push(position.x, position.y, position.z);
             colors.push(col.r, col.g, col.b);
             // sizes.push(size);
+            randoms.push(Math.random() * 5);
         }
 
         this.starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
         this.starsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
         // this.starsGeometry.setAttribute('aSize', new THREE.Float32BufferAttribute(sizes, 1));
+        this.starsGeometry.setAttribute('aRandom', new THREE.Float32BufferAttribute(randoms, 1));
 
         this.starsMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 pointTexture: new THREE.Uniform(this.starTexture),
                 uSize: new THREE.Uniform(this.starSize),
                 uTime: new THREE.Uniform(0),
+                uTwinkle: new THREE.Uniform(this.isTwinkling),
             },
             vertexShader,
             fragmentShader,
@@ -101,6 +106,11 @@ class StarField {
         this.starsMaterial.dispose();
         this.starNumbers = numbers;
         this.initialize();
+    }
+
+    updateTwinkle = (bFlag) => {
+        this.isTwinkling = bFlag;
+        this.starsMaterial.uniforms.uTwinkle.value = this.isTwinkling;
     }
 
     update = (time) => {
