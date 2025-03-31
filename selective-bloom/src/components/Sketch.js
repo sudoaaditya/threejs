@@ -92,8 +92,15 @@ class Sketch {
             exposure: 1,
             bloomStrength: 0.9,
             bloomThreshold: 0,
-            bloomRadius: 0
+            bloomRadius: 0,
+            planeSize: 50,
         };
+
+        const meshFolder = this.gui.addFolder("Mesh Settings")
+        meshFolder.add(this.params, "planeSize", 10, 150, 1).onChange(() => {
+            this.dispose();
+            this.addContents();
+        });
 
         const bloomFolder = this.gui.addFolder("Bloom Settings")
 
@@ -140,7 +147,6 @@ class Sketch {
     setupResize = () => {
         window.addEventListener('resize', this.resize);
     }
-
 
     resize = () => {
         this.sizes.width = window.innerWidth;
@@ -218,7 +224,7 @@ class Sketch {
     addContents = () => {
         // render base scene data!
 
-        this.boxPos = new THREE.PlaneGeometry(50, 50, 130, 130);
+        this.boxPos = new THREE.PlaneGeometry(this.params.planeSize, this.params.planeSize, this.params.planeSize * 2, this.params.planeSize * 2);
         this.boxPos.rotateX(-Math.PI * 0.5);
 
         this.sphereGeom = new THREE.SphereGeometry(0.15, 16, 8);
@@ -251,6 +257,25 @@ class Sketch {
         );
         this.instanceTwo.layers.enable(this.layerNames.BLOOM_SCENE);
         this.scene.add(this.instanceTwo);
+    }
+
+    dispose = () => {
+        this.scene.remove(this.instanceOne);
+        this.scene.remove(this.instanceTwo);
+        this.instanceOne.geometry.dispose();
+        this.instanceTwo.geometry.dispose();
+        this.instanceOne.material.dispose();
+        this.instanceTwo.material.dispose();
+        this.materialInst.forEach((mat) => {
+            mat.dispose();
+        });
+        this.materialShaders = [];
+        this.materialInst = [];
+        this.materials = {};
+
+        this.boxPos.dispose();
+        this.sphereGeom.dispose();
+        this.instancedGeom.dispose();
     }
 
     createMaterial = (type, color, isTip, changeColor) => {
