@@ -30,6 +30,10 @@
     - Water Caustics and deep water stream simulation  
     - [Live Demo](https://water-currents.vercel.app/)
 
+- **ISelective Bloom**: 
+    - Slelctive bloom implementation using material customization
+    - [Live Demo](https://selective-bloom.vercel.app/)
+
 - **Generative Star Field**: 
     - Generative & customizable starfield composer
     - [Live Demo](https://starfield-nine.vercel.app/)
