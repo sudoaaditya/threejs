@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "lil-gui": "^0.20.0",
+    "nice-color-palettes": "^4.0.0",
     "three": "^0.176.0",
     "vite-plugin-glsl": "^1.4.1",
     "vite-plugin-restart": "^0.4.2"
