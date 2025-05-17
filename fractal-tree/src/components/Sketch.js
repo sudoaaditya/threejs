@@ -54,15 +54,24 @@ class Sketch {
 
         // world setup
         this.settings()
-        this.addContents();
+        // this.addContents();
 
         // start animation loop
         this.start();
     }
 
     settings = () => {
-        this.settings = {
+        this.params = {
+            rotationAngle: 45,
+            branchLength: 20,
         };
+
+        this.gui.add(this.params, 'rotationAngle', 0, 180, 5).onChange(() => {
+            this.scene.remove(this.tree);
+            this.tree = this.createBranch(this.params.branchLength);
+            this.scene.add(this.tree);
+            this.setCameraAtTreeCenter();
+        });
     }
 
     setupCamera = () => {
@@ -95,10 +104,17 @@ class Sketch {
     }
 
     start = () => {
-        if (!this.frameId) {
-            this.frameId = window.requestAnimationFrame(this.update);
-        }
-    }
+        this.lastFrameTime = 0;
+        this.frameInterval = 1000 / 30; // 30 FPS
+        const loop = (timestamp) => {
+            if (timestamp - this.lastFrameTime >= this.frameInterval) {
+                this.lastFrameTime = timestamp;
+                this.update();
+            }
+            this.frameId = requestAnimationFrame(loop);
+        };
+        this.frameId = requestAnimationFrame(loop);
+}
 
     stop = () => {
         cancelAnimationFrame(this.frameId);
@@ -106,9 +122,7 @@ class Sketch {
 
     addContents = () => {
         // render base scene data!
-        const treeLength = 20;
-
-        this.tree = this.createBranch(treeLength);
+        this.tree = this.createBranch(this.params.branchLength);
         this.scene.add(this.tree);
 
         // this.tree = new THREE.Group();
@@ -130,7 +144,7 @@ class Sketch {
         this.controls.update();
     }
 
-    createBranch = (length, color) => {
+    createBranch = (length, color = 'red') => {
         const group = new THREE.Group();
 
         // set random color for each branch
@@ -150,18 +164,17 @@ class Sketch {
         if (length < 0.5) return group;
 
         const branchLength = length * 0.67;
-        const rotateAngle = Math.random() * 0.5 + 0.5;
-        const colorA = niceColors[Math.floor(Math.random() * 25)][Math.floor(Math.random() * 5)];
+        // const colorA = niceColors[Math.floor(Math.random() * 25)][Math.floor(Math.random() * 5)];
         // create right branch
-        const rightBranch = this.createBranch(branchLength, colorA);
+        const rightBranch = this.createBranch(branchLength, color);
         rightBranch.position.y = length;
-        rightBranch.rotation.z = rotateAngle /* THREE.MathUtils.degToRad(45) */;
+        rightBranch.rotation.z = THREE.MathUtils.degToRad(this.params.rotationAngle);
         group.add(rightBranch);
 
         // create left branch
-        const leftBranch = this.createBranch(branchLength, colorA);
+        const leftBranch = this.createBranch(branchLength, color);
         leftBranch.position.y = length;
-        leftBranch.rotation.z = -rotateAngle /* THREE.MathUtils.degToRad(-45) */;
+        leftBranch.rotation.z = THREE.MathUtils.degToRad(-this.params.rotationAngle);;
         group.add(leftBranch);
 
         return group;
@@ -203,6 +216,11 @@ class Sketch {
 
     update = () => {
         this.elpasedTime = this.clock.getElapsedTime();
+
+        this.scene.remove(this.tree);
+        this.tree = this.createBranch(this.params.branchLength);
+        this.scene.add(this.tree);
+        this.setCameraAtTreeCenter();
 
         this.render();
 
