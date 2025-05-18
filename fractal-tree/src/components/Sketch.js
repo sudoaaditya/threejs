@@ -44,6 +44,8 @@ class Sketch {
 
         this.clock = new THREE.Clock();
 
+        this.treeQueue = [];
+
         // camera & resize
         this.setupCamera();
         this.setupResize();
@@ -54,7 +56,7 @@ class Sketch {
 
         // world setup
         this.settings()
-        // this.addContents();
+        this.addContents();
 
         // start animation loop
         this.start();
@@ -67,10 +69,13 @@ class Sketch {
         };
 
         this.gui.add(this.params, 'rotationAngle', 0, 180, 5).onChange(() => {
-            this.scene.remove(this.tree);
+            /* this.scene.remove(this.tree);
             this.tree = this.createBranch(this.params.branchLength);
             this.scene.add(this.tree);
-            this.setCameraAtTreeCenter();
+            this.setCameraAtTreeCenter(); */
+            this.scene.remove(this.tree);
+            this.treeQueue = [];
+            this.addContents();
         });
     }
 
@@ -122,14 +127,22 @@ class Sketch {
 
     addContents = () => {
         // render base scene data!
-        this.tree = this.createBranch(this.params.branchLength);
-        this.scene.add(this.tree);
+        // this.tree = this.createBranch(this.params.branchLength);
+        // this.scene.add(this.tree);
 
         // this.tree = new THREE.Group();
         // this.scene.add(this.tree);
         // this.animateBranch(20, this.tree);
 
-        this.setCameraAtTreeCenter();
+        const color = niceColors[Math.floor(Math.random() * 25)][Math.floor(Math.random() * 5)];
+        this.material = new THREE.LineBasicMaterial({ color });
+
+        this.tree = new THREE.Group();
+        this.scene.add(this.tree);
+
+        this.enqueueBranch(this.params.branchLength, this.tree, 0);
+
+        // this.setCameraAtTreeCenter();
     }
 
     setCameraAtTreeCenter = () => {
@@ -214,15 +227,59 @@ class Sketch {
         }, delay);
     }
 
+    enqueueBranch = (length, parent, depth) => {
+        this.treeQueue.push({length, parent, depth});
+    }
+
+    growTree = () => {
+        const batchSize = 3; 
+
+        for (let i = 0; i < batchSize && this.treeQueue.length > 0; i++) {
+            const { length, parent, depth } = this.treeQueue.shift();
+
+            const geometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(0, 0, 0),
+                new THREE.Vector3(0, length, 0)
+            ]);
+            const line = new THREE.Line(geometry, this.material);
+
+            const branchGroup = new THREE.Group();
+            branchGroup.add(line);
+            parent.add(branchGroup);
+
+            if (length < 0.5) return;
+
+            const nextLength = length * 0.67;
+
+            const right = new THREE.Group();
+            right.position.y = length;
+            right.rotation.z = THREE.MathUtils.degToRad(this.params.rotationAngle);
+            branchGroup.add(right);
+            this.enqueueBranch(nextLength, right, depth + 1);
+
+            const left = new THREE.Group();
+            left.position.y = length;
+            left.rotation.z = -THREE.MathUtils.degToRad(this.params.rotationAngle);
+            branchGroup.add(left);
+            this.enqueueBranch(nextLength, left, depth + 1);
+        }
+
+    }
+
     update = () => {
         this.elpasedTime = this.clock.getElapsedTime();
 
-        this.scene.remove(this.tree);
-        this.tree = this.createBranch(this.params.branchLength);
-        this.scene.add(this.tree);
-        this.setCameraAtTreeCenter();
+        // this.scene.remove(this.tree);
+        // this.tree = this.createBranch(this.params.branchLength);
+        // this.scene.add(this.tree);
+        // this.setCameraAtTreeCenter();
 
+        this.growTree();
         this.render();
+
+        if (this.treeQueue.length % 10 === 0) {
+            this.setCameraAtTreeCenter();
+        }
 
         this.frameId = window.requestAnimationFrame(this.update);
     }
