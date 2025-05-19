@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/Addons.js';
+// import { OrbitControls } from 'three/examples/jsm/Addons.js';
 
 import niceColors from 'nice-color-palettes';
 import GUI from 'lil-gui';
@@ -90,7 +90,7 @@ class Sketch {
 
         this.camera.position.set(0, 0, 100);
 
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+        // this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     }
 
     setupResize = () => {
@@ -119,7 +119,7 @@ class Sketch {
             this.frameId = requestAnimationFrame(loop);
         };
         this.frameId = requestAnimationFrame(loop);
-}
+    }
 
     stop = () => {
         cancelAnimationFrame(this.frameId);
@@ -153,8 +153,8 @@ class Sketch {
         this.camera.position.set(center.x, center.y, -size.y * 2);
         this.camera.lookAt(center);
         this.camera.updateProjectionMatrix();
-        this.controls.target.copy(center);
-        this.controls.update();
+        // this.controls.target.copy(center);
+        // this.controls.update();
     }
 
     createBranch = (length, color = 'red') => {
@@ -228,11 +228,11 @@ class Sketch {
     }
 
     enqueueBranch = (length, parent, depth) => {
-        this.treeQueue.push({length, parent, depth});
+        this.treeQueue.push({ length, parent, depth });
     }
 
     growTree = () => {
-        const batchSize = 3; 
+        const batchSize = 3;
 
         for (let i = 0; i < batchSize && this.treeQueue.length > 0; i++) {
             const { length, parent, depth } = this.treeQueue.shift();
