@@ -61,10 +61,10 @@ class Grass {
             side: THREE.DoubleSide,
             uniforms: {
                 time: new THREE.Uniform(0),
-                map: new THREE.Uniform(this.texLoader.load('/textures/blade_diffuse.jpg')),
-                alphaMap: new THREE.Uniform(this.texLoader.load('/textures/blade_alpha.jpg')),
+                map: new THREE.Uniform(this.texLoader.load('/textures/grassblade.png')),
+                alphaMap: new THREE.Uniform(this.texLoader.load('/textures/grassblade_alpha.png')),
                 bladeHeight: new THREE.Uniform(this.options.bH),
-                tipColor: new THREE.Uniform(new THREE.Color(0.0, 0.6, 0.0).convertSRGBToLinear()),
+                tipColor: new THREE.Uniform(new THREE.Color(0.0, 0.0, 0.0).convertSRGBToLinear()),
                 bottomColor: new THREE.Uniform(new THREE.Color(0.0, 0.2, 0.0).convertSRGBToLinear()),
             },
             toneMapped: false,

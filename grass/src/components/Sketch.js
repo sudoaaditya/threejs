@@ -116,7 +116,7 @@ class Sketch {
 
     addContents = () => {
         // render base scene data!
-        this.grassObject = new Grass({bW: 0.12, bH: 1.2, joints: 5}, 100, 50000);
+        this.grassObject = new Grass({bW: 1.2, bH: 1.2, joints: 5}, 100, 50000);
 
         this.scene.add(this.grassObject.meshGrond);
         this.scene.add(this.grassObject.mesh);
