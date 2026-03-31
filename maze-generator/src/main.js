@@ -27,6 +27,8 @@ class Sketch {
     this.grid = new Array();
     this.stack = new Array();
     this.current = null;
+    this.complete = false;
+    this.completePulseTime = 0;
     this.rows = this.cols = Math.floor(this.settings.gridSize / this.settings.cellSize);
 
     this.initialize();
@@ -38,12 +40,13 @@ class Sketch {
     this.width = this.container.offsetWidth;
     this.height = this.container.offsetHeight;
 
-    this.renderer = new THREE.WebGLRenderer();
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(this.width, this.height);
-    this.renderer.setClearColor('#000000', 1);
+    this.renderer.setClearColor('#05080a', 1);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.05;
     this.container.appendChild(this.renderer.domElement);
 
     //Setup Camera & Resize
@@ -128,10 +131,20 @@ class Sketch {
 
   reset = () => {
     this.resetting = true;
-    this.scene.remove(this.boxGroup);
+
+    if (this.boxGroup) {
+      this.scene.remove(this.boxGroup);
+    }
+
+    this.grid.forEach((cell) => {
+      cell.dispose();
+    });
+
     this.grid = [];
     this.stack = [];
     this.current = null;
+    this.complete = false;
+    this.completePulseTime = 0;
     this.rows = Math.floor(this.settings.gridSize / this.settings.cellSize);
     this.cols = Math.floor(this.settings.gridSize / this.settings.cellSize);
 
@@ -153,6 +166,8 @@ class Sketch {
     this.updateCameraPosition();
 
     this.current = this.grid[this.rows - 1];
+    this.complete = false;
+    this.completePulseTime = 0;
   }
 
   updateCameraPosition = () => {
@@ -170,9 +185,10 @@ class Sketch {
     this.render();
 
     this.grid.forEach(box => box.render());
+    this.animateCompletionState();
 
     // algorithm!
-    if (!this.resetting) {
+    if (!this.resetting && !this.complete) {
       this.current.visited = true;
       this.current.highlightBox();
       let iRetIdx = this.current.checkNeighbour(this.grid);
@@ -184,6 +200,8 @@ class Sketch {
         this.current = next;
       } else if (this.stack.length) {
         this.current = this.stack.pop();
+      } else {
+        this.complete = true;
       }
     }
 
@@ -195,6 +213,24 @@ class Sketch {
     if (renderer) {
       renderer.render(scene, camera);
     }
+  }
+
+  animateCompletionState = () => {
+    if (!this.complete || !this.boxGroup) {
+      return;
+    }
+
+    this.completePulseTime += 0.04;
+    const pulse = 0.84 + (Math.sin(this.completePulseTime) * 0.16);
+
+    this.grid.forEach((cell) => {
+      if (cell.wallMat) {
+        cell.wallMat.opacity = pulse;
+      }
+      if (cell.visitedMat && cell.visited) {
+        cell.visitedMat.opacity = 0.24 + (Math.sin(this.completePulseTime + (cell.x + cell.y) * 0.08) * 0.06);
+      }
+    });
   }
 
   removeWalls = (a, b) => {

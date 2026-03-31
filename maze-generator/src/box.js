@@ -14,6 +14,7 @@ class box {
     this.walls = new Array(4);
 
     // colors
+    this.wallColor = '#f2f4f8';
     this.highlightColor = '#B3ffff';
     this.visitedColor = '#088478';
 
@@ -22,7 +23,27 @@ class box {
     this.wallsMeshes = [];
     this.pointMeshs = [];
 
-    this.lineMat = new THREE.LineBasicMaterial({ color: "white", depthWrite: false, depthTest: false });
+    this.wallMat = new THREE.MeshBasicMaterial({
+      color: this.wallColor,
+      transparent: true,
+      opacity: 0.92,
+      depthWrite: true,
+      depthTest: true,
+    });
+    this.visitedMat = new THREE.MeshBasicMaterial({
+      color: this.visitedColor,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+      depthTest: true,
+    });
+    this.highlightMat = new THREE.MeshBasicMaterial({
+      color: this.highlightColor,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      depthTest: true,
+    });
 
 
     this.init();
@@ -84,37 +105,27 @@ class box {
 
       const boxMesh = new THREE.Mesh(
         boxGeo,
-        this.lineMat,
+        this.wallMat,
       );
       boxMesh.position.copy(center);
       boxMesh.rotateY(THREE.MathUtils.degToRad(rotAngleX));
       boxMesh.renderOrder = 1;
       this.wallsMeshes[i] = boxMesh;
-
-      // need to draw box later!
-      const planeGeo = new THREE.BufferGeometry();
-      planeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
-        iX, iY, 0,
-        iX + this.iBoxSize, iY, 0,
-        iX, iY + this.iBoxSize, 0,
-        iX + this.iBoxSize, iY + this.iBoxSize, 0,
-      ]), 3));
-      planeGeo.setIndex([0, 1, 2, 2, 1, 3])
-      const planeMat = new THREE.MeshBasicMaterial({ color: '#d135fe' }); // d135fe #6e8cf1
-      this.boxMesh = new THREE.Mesh(planeGeo, planeMat);
-      this.boxMesh.visible = false;
-
-      /* 
-      // Other way to draw it!!!
-      planeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
-        iX, iY + this.iBoxSize, 0,
-        iX + this.iBoxSize, iY + this.iBoxSize, 0,
-        iX, iY, 0,
-        iX + this.iBoxSize, iY, 0,
-      ]), 3));
-      planeGeo.setIndex([0, 2, 1, 2, 3, 1])
-      */
     }
+
+    // Create one fill mesh per cell. Walls are created in the loop above.
+    const planeGeo = new THREE.BufferGeometry();
+    planeGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+      iX, iY, 0,
+      iX + this.iBoxSize, iY, 0,
+      iX, iY + this.iBoxSize, 0,
+      iX + this.iBoxSize, iY + this.iBoxSize, 0,
+    ]), 3));
+    planeGeo.setIndex([0, 1, 2, 2, 1, 3]);
+    this.boxMesh = new THREE.Mesh(planeGeo, this.visitedMat);
+    this.boxMesh.position.z = -0.3;
+    this.boxMesh.renderOrder = 0;
+    this.boxMesh.visible = false;
   }
 
   checkNeighbour = (grid) => {
@@ -181,13 +192,13 @@ class box {
     }
 
     if (this.visited) {
-      this.boxMesh.material = new THREE.MeshBasicMaterial({ color: this.visitedColor }); //#d135fe
+      this.boxMesh.material = this.visitedMat;
       this.boxMesh.material.needsUpdate = true;
     }
   }
 
   highlightBox = () => {
-    this.boxMesh.material = new THREE.MeshBasicMaterial({ color: this.highlightColor });
+    this.boxMesh.material = this.highlightMat;
     this.boxMesh.material.needsUpdate = true;
     this.boxMesh.visible = true;
   }
@@ -195,6 +206,21 @@ class box {
   updateColors = (vs, hc) => {
     this.visitedColor = vs;
     this.highlightColor = hc;
+
+    this.visitedMat.color.set(this.visitedColor);
+    this.highlightMat.color.set(this.highlightColor);
+  }
+
+  dispose = () => {
+    this.boxMesh?.geometry?.dispose();
+
+    this.wallsMeshes.forEach((wall) => {
+      wall?.geometry?.dispose();
+    });
+
+    this.wallMat?.dispose();
+    this.visitedMat?.dispose();
+    this.highlightMat?.dispose();
   }
 
 }
